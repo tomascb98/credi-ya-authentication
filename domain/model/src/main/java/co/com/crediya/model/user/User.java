@@ -1,26 +1,22 @@
 package co.com.crediya.model.user;
 import co.com.crediya.model.role.Role;
-import lombok.Builder;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-//import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-import java.math.BigInteger;
-import java.util.Date;
+import java.math.BigDecimal;
+import java.util.UUID;
 
 @Getter
 @Setter
-//@NoArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
 public class User {
-    private Long id;
+    private UUID id;
     private String name;
     private String email;
     private String password;
     private String documentNumber;
     private String phoneNumber;
-    private BigInteger salaryBase;
+    private BigDecimal salaryBase;
     private Role role;
 }

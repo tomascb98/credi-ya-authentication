@@ -1,37 +1,37 @@
 package co.com.crediya.usecase.user;
 
+
 import co.com.crediya.model.user.User;
 import co.com.crediya.model.user.gateways.UserRepository;
-import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
-import java.util.List;
+import java.util.UUID;
 
-@RequiredArgsConstructor
-public class UserUseCase implements UserRepository{
+public class UserUseCase{
     private final UserRepository userRepository;
 
-    @Override
-    public User saveUser(User user) {
+    public UserUseCase(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
+    public Mono<User> saveUser(User user) {
         return userRepository.saveUser(user);
     }
 
-    @Override
-    public User findUserById(Long id) {
+    public Mono<User> findUserById(UUID id) {
         return userRepository.findUserById(id);
     }
 
-    @Override
-    public List<User> getAllUsers() {
+    public Flux<User> getAllUsers() {
         return userRepository.getAllUsers();
     }
 
-    @Override
-    public User updateUser(User user) {
+    public Mono<User>  updateUser(User user) {
         return userRepository.updateUser(user);
     }
 
-    @Override
-    public void deleteUser(Long id) {
+    public void deleteUser(UUID id) {
         userRepository.deleteUser(id);
     }
 }

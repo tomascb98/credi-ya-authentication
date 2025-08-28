@@ -25,14 +25,13 @@ cors:
 
 routes:
   paths:
-    tasks: "/api/v1/tasks"
-    tasksById: "/api/v1/tasks/{id}"
+    users: "/api/v1/users"
 
 adapters:
   r2dbc:
     host: "localhost"
     port: 5432
-    database: "postgres"
-    schema: "public"
-    username: "postgres"
-    password: "postgres123"
+    database: "crediya"
+    schema: "auth"
+    username: "appuser"
+    password: "appsecret"
