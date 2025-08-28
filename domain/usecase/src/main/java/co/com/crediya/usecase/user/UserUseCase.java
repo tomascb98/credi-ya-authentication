@@ -3,6 +3,7 @@ package co.com.crediya.usecase.user;
 
 import co.com.crediya.model.user.User;
 import co.com.crediya.model.user.gateways.UserRepository;
+import co.com.crediya.usecase.user.helper.UserValidatorHelper;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -16,6 +17,8 @@ public class UserUseCase{
     }
 
     public Mono<User> saveUser(User user) {
+        UserValidatorHelper.UserFieldsValidation(user);
+        UserValidatorHelper.BusinessRulesUserValidation(user, userRepository);
         return userRepository.saveUser(user);
     }
 

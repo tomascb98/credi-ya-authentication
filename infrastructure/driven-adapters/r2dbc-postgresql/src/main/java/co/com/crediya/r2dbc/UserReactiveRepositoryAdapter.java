@@ -33,13 +33,18 @@ public class UserReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     public Mono<User> saveUser(User user) {
         UserEntity userEntity = mapper.map(user, UserEntity.class);
         userEntity.setUserRoleId(user.getRole().getId());
-        return this.repository
+        return repository
                 .save(userEntity)
                 .map(userEntitySaved -> {
                     User userSaved = mapper.map(userEntitySaved, User.class);
                     userSaved.setRole(Role.builder().id(userEntitySaved.getUserRoleId()).build());
                     return userSaved;
                 });
+    }
+
+    @Override
+    public Mono<User> findUserByEmail(String email) {
+        return repository.findUserByEmail(email);
     }
 
     @Override
