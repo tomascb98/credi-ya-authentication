@@ -1,29 +1,58 @@
 package co.com.crediya.usecase.user.helper;
 
+import co.com.crediya.model.exceptions.BusinessRuleException;
+import co.com.crediya.model.exceptions.ValidationException;
 import co.com.crediya.model.user.User;
 import co.com.crediya.model.user.gateways.UserRepository;
 import reactor.core.publisher.Mono;
 
-import java.awt.dnd.InvalidDnDOperationException;
 import java.math.BigDecimal;
 
-public class UserValidatorHelper{
+public class UserValidatorHelper {
 
-    public static void UserFieldsValidation(User user) throws IllegalStateException{
-        if(user.getEmail() == null || user.getEmail().trim().isEmpty()
-        || user.getName() == null || user.getName().trim().isEmpty()
-        || user.getSalaryBase() == null){
-            throw new IllegalStateException("El nombre, email y/o salario base está vacio.");
-        }
+    public static Mono<User> validateAndSaveUser(User user, UserRepository repository) {
+        return validateRequiredFields(user)
+            .flatMap(validUser -> validateEmailUniqueness(validUser, repository))
+            .flatMap(validUser -> validateBusinessRules(validUser))
+            .flatMap(validUser -> repository.saveUser(validUser));
     }
 
-    public static void BusinessRulesUserValidation(User user, UserRepository repository) throws IllegalStateException{
-        Mono<User> userAlreadyExists = repository.findUserByEmail(user.getEmail());
-        if(userAlreadyExists != null) throw new InvalidDnDOperationException("El email ya existe en el sistema.");
+    private static Mono<User> validateRequiredFields(User user) {
+        return Mono.fromCallable(() -> {
+            if (user.getName() == null || user.getName().trim().isEmpty() ||
+                user.getLastName() == null || user.getLastName().trim().isEmpty() ||
+                user.getEmail() == null || user.getEmail().trim().isEmpty() ||
+                user.getSalaryBase() == null) {
+                throw new ValidationException("Los campos nombres, apellidos, correo_electronico y salario_base son obligatorios.");
+            }
+            return user;
+        });
+    }
 
-        String emailRegex = "^(?!\\.)(?!.*\\.\\.)[a-zA-Z0-9_%+-]+(\\.[a-zA-Z0-9_%+-]+)*@([a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$";
-        if(!user.getEmail().trim().matches(emailRegex)) throw new IllegalArgumentException("El campo email no tiene un formato valido.");
+    private static Mono<User> validateEmailUniqueness(User user, UserRepository repository) {
+        return repository.findUserByEmail(user.getEmail())
+            .hasElement()
+            .flatMap(exists -> {
+                if (exists) {
+                    return Mono.error(new BusinessRuleException("El correo electrónico ya está registrado."));
+                }
+                return Mono.just(user);
+            });
+    }
 
-        if(user.getSalaryBase().compareTo(BigDecimal.ZERO) < 0 || user.getSalaryBase().compareTo(BigDecimal.valueOf(1500000.0)) > 0) throw new IllegalStateException("El salario base no puede ser negativo o superar 1500000");
+    private static Mono<User> validateBusinessRules(User user) {
+        return Mono.fromCallable(() -> {
+            String emailRegex = "^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$";
+            if (!user.getEmail().matches(emailRegex)) {
+                throw new ValidationException("El formato del correo electrónico no es válido.");
+            }
+            
+            if (user.getSalaryBase().compareTo(BigDecimal.ZERO) < 0 || 
+                user.getSalaryBase().compareTo(BigDecimal.valueOf(15000000)) > 0) {
+                throw new ValidationException("El salario base debe estar entre 0 y 15,000,000.");
+            }
+            
+            return user;
+        });
     }
 }

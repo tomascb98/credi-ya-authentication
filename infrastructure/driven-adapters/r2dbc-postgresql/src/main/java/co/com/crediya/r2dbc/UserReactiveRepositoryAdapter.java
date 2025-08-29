@@ -7,12 +7,14 @@ import co.com.crediya.r2dbc.entity.UserEntity;
 import co.com.crediya.r2dbc.helper.ReactiveAdapterOperations;
 import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
 @Repository
+@Transactional
 public class UserReactiveRepositoryAdapter extends ReactiveAdapterOperations<
         User/* change for domain model */,
         UserEntity/* change for adapter model */,
@@ -45,25 +47,5 @@ public class UserReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Mono<User> findUserByEmail(String email) {
         return repository.findUserByEmail(email);
-    }
-
-    @Override
-    public Mono<User> findUserById(UUID id) {
-        return this.findById(id);
-    }
-
-    @Override
-    public Flux<User> getAllUsers() {
-        return this.repository.findAll()
-                .map(this::toEntity);
-    }
-
-    @Override
-    public Mono<User> updateUser(User user) {
-        return this.save(user);
-    }
-
-    @Override
-    public void deleteUser(UUID id) {
     }
 }

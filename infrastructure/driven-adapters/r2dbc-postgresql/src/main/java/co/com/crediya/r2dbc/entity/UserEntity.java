@@ -9,6 +9,7 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Data
@@ -22,17 +23,27 @@ public class UserEntity {
     private UUID id;
     
     private String name;
-    private String email;
-    private String password;
     
-    @Column("document_number")
-    private String documentNumber;
+    @Column("last_name")
+    private String lastName;
+    
+    @Column("birth_date")
+    private LocalDate birthDate;
+    
+    private String address;
     
     @Column("phone_number")
     private String phoneNumber;
     
+    private String email;
+    
     @Column("salary_base")
     private BigDecimal salaryBase;
+    
+    private String password;
+    
+    @Column("document_number")
+    private String documentNumber;
     
     @Column("user_role_id")
     private Integer userRoleId;
