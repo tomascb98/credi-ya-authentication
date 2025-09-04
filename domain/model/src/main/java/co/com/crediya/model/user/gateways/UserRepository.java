@@ -8,4 +8,5 @@ import java.util.UUID;
 public interface UserRepository {
     Mono<User> saveUser(User user);
     Mono<User> findUserByEmail(String email);
+    Mono<User> findUserByDocumentNumber(String documentNumber);
 }

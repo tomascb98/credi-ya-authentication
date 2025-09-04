@@ -5,7 +5,8 @@ import co.com.crediya.model.user.gateways.UserRepository;
 import co.com.crediya.usecase.user.helper.UserValidatorHelper;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
+import java.util.Objects;
+
 
 public class UserUseCase{
     private final UserRepository userRepository;
@@ -16,5 +17,10 @@ public class UserUseCase{
 
     public Mono<User> saveUser(User user) {
         return UserValidatorHelper.validateAndSaveUser(user, userRepository);
+    }
+
+    public Mono<Boolean> validateUser(String documentNumber) {
+        return userRepository.findUserByDocumentNumber(documentNumber)
+                .hasElement();
     }
 }

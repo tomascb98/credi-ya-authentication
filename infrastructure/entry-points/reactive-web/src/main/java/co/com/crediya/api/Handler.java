@@ -2,12 +2,14 @@ package co.com.crediya.api;
 
 import co.com.crediya.api.advisor.GlobalExceptionHandler;
 import co.com.crediya.api.dto.RegisterUserDto;
+import co.com.crediya.api.dto.ValidateUserResponseDto;
 import co.com.crediya.api.mapper.UserMapperDtoMapper;
 import co.com.crediya.model.exceptions.BusinessRuleException;
 import co.com.crediya.model.exceptions.UserNotFoundException;
 import co.com.crediya.model.exceptions.ValidationException;
 import co.com.crediya.usecase.user.UserUseCase;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -18,6 +20,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class Handler {
 
     private final UserUseCase userUseCase;
@@ -25,15 +28,41 @@ public class Handler {
     private final GlobalExceptionHandler exceptionHandler;
 
     public Mono<ServerResponse> saveUser(ServerRequest request) {
+        log.info("Iniciando registro de usuario");
+        
         return request.bodyToMono(RegisterUserDto.class)
-                .flatMap(userDto -> userUseCase.saveUser(mapper.mapToEntity(userDto)))
+                .doOnNext(userDto -> log.info("DTO de usuario recibido: email={}", userDto.email()))
+                .flatMap(userDto -> {
+                    log.debug("Mapeando DTO a entidad de dominio");
+                    return userUseCase.saveUser(mapper.mapToEntity(userDto));
+                })
+                .doOnNext(savedUser -> log.info("Usuario registrado exitosamente"))
                 .flatMap(savedUser -> 
                     ServerResponse.status(HttpStatus.CREATED)
                             .bodyValue(mapper.mapToDto(savedUser))
                 )
+                .doOnNext(response -> log.info("Respuesta HTTP preparada con status CREATED"))
                 .onErrorResume(ValidationException.class, exceptionHandler::handleValidationException)
                 .onErrorResume(BusinessRuleException.class, exceptionHandler::handleBusinessRuleException)
                 .onErrorResume(IllegalArgumentException.class, exceptionHandler::handleIllegalArgumentException)
                 .onErrorResume(Exception.class, exceptionHandler::handleGenericException);
+    }
+
+    public Mono<ServerResponse> validateUser(ServerRequest request) {
+        log.info("Iniciando validación de usuario");
+        
+        return request.bodyToMono(RegisterUserDto.class)
+                .doOnNext(registerUserDto -> log.info("DTO de validación recibido"))
+                .flatMap(registerUserDto -> {
+                    log.debug("Validando usuario con documento: {}", registerUserDto.documentNumber());
+                    return userUseCase.validateUser(registerUserDto.documentNumber());
+                })
+                .doOnNext(isValidUser -> log.info("Usuario validado: {}", isValidUser ? "válido" : "no encontrado"))
+                .flatMap(isValidUser -> ServerResponse.status(HttpStatus.OK)
+                        .bodyValue(new ValidateUserResponseDto(
+                                "Validación exitosa",
+                                isValidUser
+                        )))
+                .doOnNext(response -> log.info("Respuesta de validación preparada con status OK"));
     }
 }

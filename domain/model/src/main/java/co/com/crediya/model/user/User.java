@@ -11,6 +11,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder(toBuilder = true)
+@EqualsAndHashCode
+@ToString
 public class User {
     private UUID id;
     private String name;

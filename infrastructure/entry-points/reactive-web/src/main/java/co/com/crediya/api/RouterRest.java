@@ -31,7 +31,7 @@ public class RouterRest {
     @Bean
     @RouterOperations({
             @RouterOperation(
-                    path = "/api/users/register",
+                    path = "/register",
                     method = RequestMethod.POST,
                     beanClass = Handler.class,
                     beanMethod = "saveUser",
@@ -86,6 +86,7 @@ public class RouterRest {
             ),
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
-        return route(POST(usersPath + "/register"), handler::saveUser);
+        return route(POST(usersPath + "/register"), handler::saveUser)
+                .andRoute(POST(usersPath + "/validateUser"), handler::validateUser);
     }
 }
