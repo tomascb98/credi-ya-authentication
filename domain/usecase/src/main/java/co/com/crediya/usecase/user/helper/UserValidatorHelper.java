@@ -10,23 +10,34 @@ import java.math.BigDecimal;
 
 public class UserValidatorHelper {
 
-    public static Mono<User> validateAndSaveUser(User user, UserRepository repository) {
+    public static Mono<User> validateUser(User user, UserRepository repository) {
         return validateRequiredFields(user)
             .flatMap(validUser -> validateEmailUniqueness(validUser, repository))
-            .flatMap(validUser -> validateBusinessRules(validUser))
-            .flatMap(validUser -> repository.saveUser(validUser));
+            .flatMap(validUser -> validateBusinessRules(validUser));
+    }
+
+    public static Mono<String> validateStringField(String field, String fieldName){
+        if(field == null || field.trim().isEmpty()){
+            return Mono.error(new ValidationException("El campo : " + fieldName + "no puede estar vácio."));
+        }
+        return Mono.just(field);
     }
 
     private static Mono<User> validateRequiredFields(User user) {
-        return Mono.fromCallable(() -> {
-            if (user.getName() == null || user.getName().trim().isEmpty() ||
-                user.getLastName() == null || user.getLastName().trim().isEmpty() ||
-                user.getEmail() == null || user.getEmail().trim().isEmpty() ||
-                user.getSalaryBase() == null) {
-                throw new ValidationException("Los campos nombres, apellidos, correo_electronico y salario_base son obligatorios.");
-            }
-            return user;
-        });
+        return validateStringField(user.getName(), "nombre")
+                .flatMap(name -> validateStringField(user.getLastName(), "apellido"))
+                .flatMap(lastName -> validateStringField(user.getEmail(), "correo electrónico"))
+                .flatMap(email -> validateStringField(user.getPassword(), "contraseña"))
+                .flatMap(password -> validateSalaryBase(user.getSalaryBase()))
+                .map(salary -> user);
+    }
+
+    // Método adicional para BigDecimal
+    private static Mono<BigDecimal> validateSalaryBase(BigDecimal salary) {
+        if (salary == null) {
+            return Mono.error(new ValidationException("El campo salario base no puede estar vacío."));
+        }
+        return Mono.just(salary);
     }
 
     private static Mono<User> validateEmailUniqueness(User user, UserRepository repository) {

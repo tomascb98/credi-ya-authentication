@@ -35,3 +35,6 @@ adapters:
     schema: "auth"
     username: "appuser"
     password: "appsecret"
+
+jwt:
+  secret: "803d865bc5070cd8ecdc815509a5bae133875e3364642d976054af7d"

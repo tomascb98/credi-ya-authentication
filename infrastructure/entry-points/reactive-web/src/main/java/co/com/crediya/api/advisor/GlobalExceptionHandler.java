@@ -1,6 +1,6 @@
 package co.com.crediya.api.advisor;
 
-import co.com.crediya.api.dto.ErrorResponseDto;
+import co.com.crediya.api.dto.response.ErrorResponseDto;
 import co.com.crediya.model.exceptions.BusinessRuleException;
 import co.com.crediya.model.exceptions.UserNotFoundException;
 import co.com.crediya.model.exceptions.ValidationException;

@@ -1,11 +1,15 @@
 package co.com.crediya.api;
 
 import co.com.crediya.api.advisor.GlobalExceptionHandler;
-import co.com.crediya.api.dto.RegisterUserDto;
-import co.com.crediya.api.dto.ValidateUserResponseDto;
+import co.com.crediya.api.config.authorization.AuthorizationService;
+import co.com.crediya.api.dto.request.AuthorizationCheckRequestDto;
+import co.com.crediya.api.dto.request.LoginRequestDto;
+import co.com.crediya.api.dto.request.RegisterUserDto;
+import co.com.crediya.api.dto.response.AuthorizationCheckResponseDto;
+import co.com.crediya.api.dto.response.LoginResponseDto;
+import co.com.crediya.api.dto.response.ValidateUserResponseDto;
 import co.com.crediya.api.mapper.UserMapperDtoMapper;
 import co.com.crediya.model.exceptions.BusinessRuleException;
-import co.com.crediya.model.exceptions.UserNotFoundException;
 import co.com.crediya.model.exceptions.ValidationException;
 import co.com.crediya.usecase.user.UserUseCase;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +20,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -26,6 +28,7 @@ public class Handler {
     private final UserUseCase userUseCase;
     private final UserMapperDtoMapper mapper;
     private final GlobalExceptionHandler exceptionHandler;
+    private final AuthorizationService authorizationService;
 
     public Mono<ServerResponse> saveUser(ServerRequest request) {
         log.info("Iniciando registro de usuario");
@@ -46,6 +49,52 @@ public class Handler {
                 .onErrorResume(BusinessRuleException.class, exceptionHandler::handleBusinessRuleException)
                 .onErrorResume(IllegalArgumentException.class, exceptionHandler::handleIllegalArgumentException)
                 .onErrorResume(Exception.class, exceptionHandler::handleGenericException);
+    }
+
+    public Mono<ServerResponse> login(ServerRequest request) {
+        log.info("Iniciando login de usuario");
+
+        return request.bodyToMono(LoginRequestDto.class)
+                .doOnNext(loginDto -> log.info("DTO de login recibido: email={}", loginDto.email()))
+                .flatMap(loginDto -> 
+                    userUseCase.login(loginDto.email(), loginDto.password()) // ⬅️ Retorna Token
+                        .map(token -> LoginResponseDto.builder()
+                                .accessToken(token.getTokenValue())
+                                .email(token.getTokenClaims().getEmail())
+                                .role(token.getTokenClaims().getRole())
+                                .message("Login exitoso")
+                                .build())
+                )
+                .doOnNext(response -> log.info("Login exitoso para usuario: {}", response.email()))
+                .flatMap(loginResponse -> ServerResponse.ok()
+                            .bodyValue(loginResponse)
+                )
+                .onErrorResume(Exception.class, ex -> {
+                    log.error("Error en login: {}", ex.getMessage());
+                    return ServerResponse.badRequest()
+                            .bodyValue("Error en login: " + ex.getMessage());
+                });
+    }
+
+    public Mono<ServerResponse> checkAuthorization(ServerRequest request) {
+        return request.bodyToMono(AuthorizationCheckRequestDto.class)
+                .doOnNext(authCheck -> log.info("Verificando autorización para path: {}", authCheck.path()))
+                .flatMap(authCheck -> 
+                    authorizationService.validateTokenAndAuthorization(authCheck.accessToken(), authCheck.path())
+                        .flatMap(response -> {
+                            log.info("Resultado de autorización: {} para rol: {}", 
+                                    response.authorized() ? "AUTORIZADO" : "DENEGADO", 
+                                    response.role());
+                            return ServerResponse.ok().bodyValue(response);
+                        })
+                )
+                .onErrorResume(Exception.class, ex -> {
+                    log.error("Error en verificación de autorización: {}", ex.getMessage());
+                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .bodyValue(new AuthorizationCheckResponseDto(
+                                    null, null, false, "Error interno del servidor"
+                            ));
+                });
     }
 
     public Mono<ServerResponse> validateUser(ServerRequest request) {

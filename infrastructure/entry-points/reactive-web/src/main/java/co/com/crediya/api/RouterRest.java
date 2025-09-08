@@ -1,8 +1,6 @@
 package co.com.crediya.api;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -16,10 +14,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import co.com.crediya.api.dto.RegisterUserDto;
-import co.com.crediya.api.dto.ErrorResponseDto;
+import co.com.crediya.api.dto.request.RegisterUserDto;
+import co.com.crediya.api.dto.response.ErrorResponseDto;
 
-import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -87,6 +84,8 @@ public class RouterRest {
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(POST(usersPath + "/register"), handler::saveUser)
-                .andRoute(POST(usersPath + "/validateUser"), handler::validateUser);
+                .andRoute(POST(usersPath + "/login"), handler::login)
+                .andRoute(POST(usersPath + "/validateUser"), handler::validateUser)
+                .andRoute(POST(usersPath + "/check-authorization"), handler::checkAuthorization);
     }
 }

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -21,6 +21,4 @@ public class Role {
     private Integer id;
     private String name;
     private String description;
-    private Date createdAt;
-    private Date updatedAt;
 }

@@ -1,11 +1,9 @@
-package co.com.crediya.api.dto;
+package co.com.crediya.api.dto.request;
 
-import co.com.crediya.model.role.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Schema(description = "DTO para el registro de un nuevo usuario en el sistema")
 public record RegisterUserDto (
