@@ -4,8 +4,6 @@ import co.com.crediya.model.role.Role;
 import reactor.core.publisher.Mono;
 
 public interface RoleRepository {
-    Mono<Role> saveRole(Role role);
-    Mono<Role> findRoleById(Integer id);
-    Mono<Role> findRoleByName(String name);
-    Mono<Role> updateRole(Role role);
+    Mono<Role> findById(Integer id);
+    Mono<Boolean> existsById(Integer id);
 }
