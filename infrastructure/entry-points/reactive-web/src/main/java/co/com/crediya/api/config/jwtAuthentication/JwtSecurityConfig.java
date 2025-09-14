@@ -30,9 +30,9 @@ public class JwtSecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         //Endpoints publicos
                         .pathMatchers(usersPath + "/login").permitAll()
-                        .pathMatchers(usersPath + "/check-authorization").permitAll() // ← AGREGAR ESTA LÍNEA
+                        .pathMatchers(usersPath + "/check-authorization").permitAll()
                         .pathMatchers("/actuator/**").permitAll()
-                        .pathMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll() //Swagger URLs
+                        .pathMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/webjars/**").permitAll() //Swagger URLs
 
                         //Endpoints que requieren roles especificos
                         .pathMatchers(usersPath + "/register").hasAnyRole("ASESOR", "ADMIN")

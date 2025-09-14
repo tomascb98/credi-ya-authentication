@@ -28,13 +28,15 @@ public class AuthorizationService {
         map.put("/api/v1/users/register", Set.of("ASESOR", "ADMIN"));
 
         // Microservicio de Créditos
-        map.put("/api/v1/credits/create", Set.of("ASESOR", "MANAGER", "ADMIN"));
+        map.put("/api/v1/credits/create", Set.of("ASESOR", "ADMIN"));
 
         return map;
     }
 
     // Método principal que valida token y autorización
-    public Mono<AuthorizationCheckResponseDto> validateTokenAndAuthorization(String token, String path) {
+    public Mono<AuthorizationCheckResponseDto> validateTokenAndAuthorization(String authHeader, String path) {
+        String token = extractTokenFromBearer(authHeader);
+        
         return validateToken(token)
                 .flatMap(isTokenValid -> {
                     if (!isTokenValid) {
@@ -101,5 +103,12 @@ public class AuthorizationService {
             return endpoint.startsWith(prefix);
         }
         return endpoint.equals(pattern);
+    }
+
+    private String extractTokenFromBearer(String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7); // Remover "Bearer " (7 caracteres)
+        }
+        return authHeader; // Retornar tal como está si no tiene el prefijo Bearer
     }
 }

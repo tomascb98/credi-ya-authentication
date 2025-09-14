@@ -14,6 +14,7 @@ import co.com.crediya.model.exceptions.ValidationException;
 import co.com.crediya.usecase.user.UserUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -57,7 +58,7 @@ public class Handler {
         return request.bodyToMono(LoginRequestDto.class)
                 .doOnNext(loginDto -> log.info("DTO de login recibido: email={}", loginDto.email()))
                 .flatMap(loginDto -> 
-                    userUseCase.login(loginDto.email(), loginDto.password()) // ⬅️ Retorna Token
+                    userUseCase.login(loginDto.email(), loginDto.password())
                         .map(token -> LoginResponseDto.builder()
                                 .accessToken(token.getTokenValue())
                                 .email(token.getTokenClaims().getEmail())
@@ -80,7 +81,7 @@ public class Handler {
         return request.bodyToMono(AuthorizationCheckRequestDto.class)
                 .doOnNext(authCheck -> log.info("Verificando autorización para path: {}", authCheck.path()))
                 .flatMap(authCheck -> 
-                    authorizationService.validateTokenAndAuthorization(authCheck.accessToken(), authCheck.path())
+                    authorizationService.validateTokenAndAuthorization(request.headers().firstHeader(HttpHeaders.AUTHORIZATION), authCheck.path())
                         .flatMap(response -> {
                             log.info("Resultado de autorización: {} para rol: {}", 
                                     response.authorized() ? "AUTORIZADO" : "DENEGADO", 

@@ -1,0 +1,14 @@
+adapters:
+  r2dbc:
+    host: ${DB_HOST:postgres}
+    port: ${DB_PORT:5432}
+    database: ${DB_NAME:crediya}
+    schema: ${DB_SCHEMA:auth}
+    username: ${DB_USER:appuser}
+    password: ${DB_PASS:appsecret}
+
+jwt:
+  secret: ${JWT_SECRET:803d865bc5070cd8ecdc815509a5bae133875e3364642d976054af7d}
+
+cors:
+  allowed-origins: ${ALLOWED_CORS:http://localhost:4200,http://localhost:8090}

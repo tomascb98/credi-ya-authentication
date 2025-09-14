@@ -20,21 +20,20 @@ management:
     health:
       probes:
         enabled: true
-cors:
-  allowed-origins: "http://localhost:4200,http://localhost:8090,*"
 
 routes:
   paths:
     users: "/api/v1/auth"
 
-adapters:
-  r2dbc:
-    host: "localhost"
-    port: 5432
-    database: "crediya"
-    schema: "auth"
-    username: "appuser"
-    password: "appsecret"
-
-jwt:
-  secret: "803d865bc5070cd8ecdc815509a5bae133875e3364642d976054af7d"
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    tryItOutEnabled: true
+  show-actuator: false
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
