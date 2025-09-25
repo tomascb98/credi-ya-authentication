@@ -6,6 +6,7 @@ import co.com.crediya.api.dto.request.AuthorizationCheckRequestDto;
 import co.com.crediya.api.dto.request.LoginRequestDto;
 import co.com.crediya.api.dto.request.RegisterUserDto;
 import co.com.crediya.api.dto.response.AuthorizationCheckResponseDto;
+import co.com.crediya.api.dto.response.GetBasicUserInfoResponseDto;
 import co.com.crediya.api.dto.response.LoginResponseDto;
 import co.com.crediya.api.dto.response.ValidateUserResponseDto;
 import co.com.crediya.api.mapper.UserMapperDtoMapper;
@@ -20,6 +21,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -114,5 +117,49 @@ public class Handler {
                                 isValidUser
                         )))
                 .doOnNext(response -> log.info("Respuesta de validación preparada con status OK"));
+    }
+
+    public Mono<ServerResponse> findUsersByDocumentNumbers(ServerRequest request){
+        log.info("Iniciando búsqueda de usuarios por números de documento");
+        
+        // Leer query parameters
+        String documentNumbersParam = request.queryParam("documentNumbers")
+                .orElse("");
+        
+        if (documentNumbersParam.isEmpty()) {
+            log.warn("Parámetro documentNumbers no proporcionado");
+            return ServerResponse.badRequest()
+                    .bodyValue("El parámetro 'documentNumbers' es requerido");
+        }
+        
+        String[] documentNumbers = documentNumbersParam.split(",");
+        log.info("Buscando {} usuarios por números de documento: {}", 
+                documentNumbers.length, String.join(", ", documentNumbers));
+        
+        return userUseCase.findUsersByDocumentNumber(documentNumbers)
+                .collectList()
+                .map(users -> {
+                    log.info("Encontrados {} usuarios", users.size());
+                    return users.stream()
+                            .map(user -> GetBasicUserInfoResponseDto.builder()
+                                    .name(user.getName() + " " + user.getLastName())
+                                    .documentNumber(user.getDocumentNumber())
+                                    .email(user.getEmail())
+                                    .salaryBase(user.getSalaryBase())
+                                    .build())
+                            .collect(Collectors.toList());
+                })
+                .flatMap(users -> ServerResponse.ok().bodyValue(users))
+                .doOnNext(response -> log.info("Respuesta preparada exitosamente"))
+                .onErrorResume(ValidationException.class, ex -> {
+                    log.error("Error de validación en búsqueda de usuarios: {}", ex.getMessage());
+                    return ServerResponse.badRequest()
+                            .bodyValue("Error de validación: " + ex.getMessage());
+                })
+                .onErrorResume(Exception.class, ex -> {
+                    log.error("Error en búsqueda de usuarios: {}", ex.getMessage());
+                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .bodyValue("Error interno del servidor");
+                });
     }
 }

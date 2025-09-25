@@ -10,8 +10,11 @@ import org.reactivecommons.utils.ObjectMapper;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.lang.reflect.Array;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -75,5 +78,11 @@ public class UserReactiveRepositoryAdapter extends ReactiveAdapterOperations<
     @Override
     public Mono<Boolean> findUserByDocumentNumber(String documentNumber) {
         return repository.existsUserEntityByDocumentNumber(documentNumber);
+    }
+
+    @Override
+    public Flux<User> findUsersByDocumentNumber(Set<String> documentNumbers) {
+        return repository.findUsersByDocumentNumberIn(documentNumbers.toArray(new String[0]))
+                .map(entity -> mapper.map(entity, User.class));
     }
 }

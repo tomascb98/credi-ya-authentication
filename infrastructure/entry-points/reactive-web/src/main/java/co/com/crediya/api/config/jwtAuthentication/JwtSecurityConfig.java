@@ -36,6 +36,7 @@ public class JwtSecurityConfig {
 
                         //Endpoints que requieren roles especificos
                         .pathMatchers(usersPath + "/register").hasAnyRole("ASESOR", "ADMIN")
+                        .pathMatchers(usersPath + "/usersByDocumentNumbers").hasAnyRole("ASESOR")
                         // Todos los demás requieren autenticación
                         .anyExchange().authenticated()
                 )

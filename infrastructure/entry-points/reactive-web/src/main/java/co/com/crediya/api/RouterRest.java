@@ -21,7 +21,9 @@ import co.com.crediya.api.dto.response.ErrorResponseDto;
 import co.com.crediya.api.dto.response.LoginResponseDto;
 import co.com.crediya.api.dto.response.AuthorizationCheckResponseDto;
 import co.com.crediya.api.dto.response.ValidateUserResponseDto;
+import co.com.crediya.api.dto.response.GetBasicUserInfoResponseDto;
 
+import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
@@ -223,12 +225,51 @@ public class RouterRest {
                                     )
                             }
                     )
+            ),
+            @RouterOperation(
+                    path = "/usersByDocumentNumbers",
+                    method = RequestMethod.GET,
+                    beanClass = Handler.class,
+                    beanMethod = "findUsersByDocumentNumbers",
+                    operation = @Operation(
+                            operationId = "findUsersByDocumentNumbers",
+                            summary = "Buscar usuarios por números de documento",
+                            description = "Busca múltiples usuarios basado en sus números de documento usando query parameters",
+                            tags = {"Usuarios"},
+                            responses = {
+                                    @ApiResponse(
+                                            responseCode = "200",
+                                            description = "Usuarios encontrados exitosamente",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = GetBasicUserInfoResponseDto.class)
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "400",
+                                            description = "Error de validación en parámetros",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponseDto.class)
+                                            )
+                                    ),
+                                    @ApiResponse(
+                                            responseCode = "500",
+                                            description = "Error interno del servidor",
+                                            content = @Content(
+                                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                                    schema = @Schema(implementation = ErrorResponseDto.class)
+                                            )
+                                    )
+                            }
+                    )
             )
     })
     public RouterFunction<ServerResponse> routerFunction(Handler handler) {
         return route(POST(usersPath + "/register"), handler::saveUser)
                 .andRoute(POST(usersPath + "/login"), handler::login)
                 .andRoute(POST(usersPath + "/validateUser"), handler::validateUser)
+                .andRoute(GET(usersPath + "/usersByDocumentNumbers"), handler::findUsersByDocumentNumbers)
                 .andRoute(POST(usersPath + "/check-authorization"), handler::checkAuthorization);
     }
 }
