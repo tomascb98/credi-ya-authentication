@@ -26,9 +26,18 @@ public class AuthorizationService {
 
         // Microservicio de Usuarios
         map.put("/api/v1/users/register", Set.of("ASESOR", "ADMIN"));
+        map.put("/api/v1/users/usersByDocumentNumbers", Set.of("ASESOR"));
 
         // Microservicio de Créditos
-        map.put("/api/v1/credits/create", Set.of("ASESOR", "ADMIN"));
+        map.put("/api/v1/credits/createApplication", Set.of("ASESOR", "ADMIN"));
+        map.put("/api/v1/credits/creditApplication", Set.of("ASESOR"));
+
+        map.put("/api/v1/credit/application/{id}", Set.of("ASESOR", "ADMIN"));
+        map.put("/api/v1/credit/calculate-capacity", Set.of("ASESOR", "ADMIN"));
+
+        // Microservicio de Reportes
+        map.put("/api/v1/reports/creditCount", Set.of("ADMIN"));
+        map.put("/api/v1/reports/creditAmount", Set.of("ADMIN"));
 
         return map;
     }
